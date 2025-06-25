@@ -1,0 +1,24 @@
+How to Achieve Global CLI Installation with uv
+Initialize your project as an app and package:
+
+uv init --app --package hello_cli
+Ensure your pyproject.toml defines the CLI entry point:
+
+[project.scripts]
+hello-cli = "hello:main"
+(Replace "hello:main" with the actual module and function.)
+
+
+Install your CLI globally:
+
+uv tool install . -e
+This command installs your CLI tool in "editable" mode, making it available system-wide.
+
+
+
+Invoke your CLI from anywhere:
+
+hello-cli
+After this installation, hello-cli will be available on your system PATH, so you can call it directly from any terminal window—no need to prefix with uv run or activate a specific environment.
+
+This method is the most accepted approach for globally available Python CLI apps using uv, and it works seamlessly with Typer-based projects as well.
