@@ -1,6 +1,7 @@
 import typer
 from enum import Enum
-from purr_petra_cli.proj import say_hello
+from purr_petra_cli.setup import prepare
+from purr_petra_cli.proj import validate_proj_dir, get_storage_epsg
 
 app = typer.Typer()
 
@@ -24,7 +25,12 @@ asset_members_str = ", ".join([member.value for member in Asset])
 
 @app.command()
 def collect(
-    proj: str = typer.Option(..., help="Path to project directory, probably a UNC"),
+    proj: str = typer.Option(
+        ...,
+        help="Path to project directory, It's probably a UNC path",
+        callback=validate_proj_dir,
+        show_envvar=False,
+    ),
     asset: Asset = typer.Option(
         Asset.well, help=f"The asset (choose from: {asset_members_str})"
     ),
@@ -40,8 +46,29 @@ def collect(
 
     print("proj=", proj)
     print("asset=", asset.value)
-    print("uwi_query", uwis)
+    print("uwis", uwis)
+
+    epsg = get_storage_epsg(proj)
+
+    print("-----------")
+    print(epsg)
+    print("-----------")
+
+
+@app.command()
+def setup():
+    """
+    Register the Elevate Software dbodbc.dll to enable querying Petra databases.
+
+    RUN THIS COMMAND IN A CONSOLE AS ADMINISTRATOR. It writes to the registry.
+    This command requires no additional options or configuration.
+    """
+    prepare()
 
 
 if __name__ == "__main__":
     app()
+
+
+# C:\Users\bryan\dev\purr_petra_cli>uv pip install -e .
+# C:\Users\bryan\dev\purr_petra_cli>uv run purr-petra-cli collect --proj IAMaproj --asset dst
