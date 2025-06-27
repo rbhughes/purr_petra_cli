@@ -1,7 +1,13 @@
 import typer
+from typing_extensions import Annotated
+from typing import List, Optional, cast
 from enum import Enum
 from purr_petra_cli.setup import prepare
 from purr_petra_cli.proj import validate_proj_dir, get_storage_epsg
+from purr_petra_cli.util import parse_uwis
+from purr_petra_cli.asset import select_assets
+
+import json
 
 app = typer.Typer()
 
@@ -34,25 +40,29 @@ def collect(
     asset: Asset = typer.Option(
         Asset.well, help=f"The asset (choose from: {asset_members_str})"
     ),
-    uwis: str = typer.Option(
+    uwis: Optional[str] = typer.Option(
         None,
         help="Full or partial UWI list. Separate UWIs with spaces or commas. "
         + "Use * or % as wildcards. This is a single arg, so wrap it in quotes."
         + '  Example: --uwis "05010001102000 350112* 350110*"  '
         + "omitting the --uwis arg selects everything--BEWARE!",
+        callback=parse_uwis,
     ),
 ):
     # asset = asset.value # to get a real string from the Enum causes type error
 
+    uwis_list = cast(Optional[List[str]], uwis)
+
     print("proj=", proj)
     print("asset=", asset.value)
-    print("uwis", uwis)
+    print("uwis=", uwis)
+    print("uwis_list=", uwis_list)
 
-    epsg = get_storage_epsg(proj)
+    # epsg = get_storage_epsg(proj)
 
-    print("-----------")
-    print(epsg)
-    print("-----------")
+    res = select_assets(proj=proj, asset=asset.value, uwis_list=uwis_list)
+    print(json.dumps(res, indent=4))
+    # print(res)
 
 
 @app.command()
@@ -72,3 +82,6 @@ if __name__ == "__main__":
 
 # C:\Users\bryan\dev\purr_petra_cli>uv pip install -e .
 # C:\Users\bryan\dev\purr_petra_cli>uv run purr-petra-cli collect --proj IAMaproj --asset dst
+# INTERSTATE has 05009052460000,
+# --uwis "1234*,050090524*" should return
+#   [3074, 3075, 3076, 3077, 3078, 3079, 3080, 3081, 3082, 3083]
