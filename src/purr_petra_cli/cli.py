@@ -1,9 +1,8 @@
 import typer
-from typing_extensions import Annotated
 from typing import List, Optional, cast
 from enum import Enum
 from purr_petra_cli.setup import prepare
-from purr_petra_cli.proj import validate_proj_dir, get_storage_epsg
+from purr_petra_cli.proj import validate_proj_dir
 from purr_petra_cli.util import parse_uwis
 from purr_petra_cli.asset import select_assets
 
@@ -85,3 +84,5 @@ if __name__ == "__main__":
 # INTERSTATE has 05009052460000,
 # --uwis "1234*,050090524*" should return
 #   [3074, 3075, 3076, 3077, 3078, 3079, 3080, 3081, 3082, 3083]
+
+# uv run purr-petra-cli collect --asset well --proj C:\dev_data\petra\projects\INTERSTATE

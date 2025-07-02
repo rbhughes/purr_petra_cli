@@ -1,81 +1,70 @@
-from typing import List
-from purr_petra_cli.util import get_recipe
-from purr_petra_cli.sql_helper import make_where_clause, chunk_ids, create_selectors
-from purr_petra_cli.xformer import PURR_WHERE
-from purr_petra_cli.dbisam import make_conn_params, db_exec
+from typing import List, Dict, Any
+from purr_petra_cli.sql_helper import get_column_info
+from purr_petra_cli.xformer import formatters, transform_dataframe_to_json
+import json
+import pyodbc
+import pandas as pd
+import numpy as np
+
+from purr_petra_cli.asset_config import AssetConfig
 
 
-def fetch_id_list(conn, id_sql):
-    """
-    Executes and asset recipe's identifier SQL and returns ids.
-    :return: Results will be either be a single "keylist"
-    [{keylist: ["1-62", "1-82", "2-83", "2-84"]}]
-    or a list of key ids
-    [{key: "1-62"}, {key: "1-82"}, {key: "2-83"}, {key: "2-84"}]
-    Force int() or str(); the typical case is a list of int
-    """
+def compose_and_write_docs(cfg: AssetConfig):
+    all_columns = set()
+    total_docs_written: int = 0
+    out_file_names: List[str] = []
 
-    def int_or_string(obj):
-        try:
-            return int(obj)
-        except ValueError:
-            return f"'{str(obj).strip()}'"
+    for select in cfg.selectors:
+        out_file = cfg.out_file()
 
-    res = db_exec(conn, id_sql)
+        with open(out_file, "w", encoding="utf-8") as f:
+            f.write("[")  # Start of JSON array
+            docs_written = 0
 
-    ids = []
+            with pyodbc.connect(**cfg.conn) as con:
+                cursor = con.cursor()
+                cursor.execute(select)
+                column_names, column_types = get_column_info(cursor)
+                df = pd.DataFrame(
+                    [tuple(row) for row in cursor.fetchall()], columns=column_names
+                )
 
-    if not res:
-        print("no ids found")
-    elif "keylist" in res[0] and res[0]["keylist"] is not None:
-        ids = res[0]["keylist"].split(",")
-    elif "key" in res[0] and res[0]["key"] is not None:
-        ids = [k["key"] for k in res]
-    else:
-        print("key or keylist missing; cannot make id list")
+                all_columns.update(df.columns)
 
-    return [int_or_string(i) for i in ids]
+                for col in df.columns:
+                    col_type = str(df.dtypes[col])
+                    xform = cfg.xforms.get(col, col_type)
+                    formatter = formatters.get(xform, lambda x: x)
+                    df[col] = df[col].apply(formatter)
 
+                df = df.replace({np.nan: None})
 
-####################################################################
+                if cfg.post_processor:
+                    df = cfg.post_processor(df)
+
+                json_data: List[Dict[str, Any]] = transform_dataframe_to_json(
+                    df, cfg.prefixes
+                )
+
+                for json_obj in json_data:
+                    json_obj["proj"] = cfg.proj
+                    json_str = json.dumps(json_obj, default=str)
+                    f.write(json_str + ",")
+                    docs_written += 1
+
+            if docs_written > 0:
+                f.seek(f.tell() - 1, 0)  # Remove the last comma
+            f.write("]")  # End JSON array
+
+            total_docs_written += docs_written
+        out_file_names.append(out_file)
+
+    return {"num_docs": total_docs_written, "out_files": out_file_names}
 
 
 def select_assets(proj: str, asset: str, uwis_list: List[str] | None):
-    recipe = get_recipe(asset)
+    cfg = AssetConfig(asset=asset, proj=proj, uwis_list=uwis_list)
+    result = compose_and_write_docs(cfg)
 
-    where = make_where_clause(uwis_list)
-
-    id_sql = recipe["identifier"].replace(PURR_WHERE, where)
-
-    # chunk_size = recipe["chunk_size"] if "chunk_size" in recipe else 1000
-    chunk_size = 3
-
-    conn = make_conn_params(proj)
-
-    ids = fetch_id_list(conn, id_sql)
-
-    if len(ids) == 0:
-        return "Query returned zero hits"
-
-    chunked_ids = chunk_ids(ids, chunk_size)
-
-    # TODO: break out recipe args
-    selectors = create_selectors(chunked_ids, recipe)
-
-    print(".............................")
-    print(where)
-    print(".............................")
-    print(id_sql)
-    print(".............................")
-    print(chunk_size)
-    print(".............................")
-    print(conn)
-    print(".............................")
-    print(ids)
-    print(".............................")
-    print(chunked_ids)
-    print(".............................")
-    for sql in selectors:
-        print(sql)
-
-    return "asdf"
+    # return f"{doc_count} {asset} docs written to _____"
+    print(result)

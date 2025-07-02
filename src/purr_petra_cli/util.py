@@ -1,6 +1,10 @@
 from typing import Optional, List
 import importlib
+import hashlib
+import time
 from typing import Dict, Any
+
+from pathlib import Path
 
 
 def parse_uwis(uwis: Optional[str]) -> List[str] | None:
@@ -28,11 +32,13 @@ def parse_uwis(uwis: Optional[str]) -> List[str] | None:
         parsed = [item.replace("*", "%").replace("'", "''") for item in split]
         # logger.debug(f"parse_uwi returns: {parsed}")
         return parsed
-    except AttributeError:
+    except AttributeError as ae:
+        print(ae)
         # logger.error(f"'uwis' must be a string, not {type(uwis)}")
         return []
     except Exception as e:  # pylint: disable=broad-except
         # logger.error(f"Unexpected error occurred: {str(e)}")
+        print(e)
         return []
 
 
@@ -49,3 +55,14 @@ def get_recipe(asset: str) -> Dict[str, Any]:
     except AttributeError as ae:
         print(f"Error: No recipe in module: '{module_path}'")
         raise ae
+
+
+def timestamp_filename(proj: str, asset: str):
+    fp = Path(proj)
+    prefix = fp.name.upper()[:3]
+    if len(fp.name) < 3:
+        prefix = prefix.ljust(3, "_")
+    suffix = hashlib.md5(str(fp).lower().encode()).hexdigest()[:6]
+    repo_id = f"{prefix}_{suffix}"
+
+    return f"{repo_id}_{int(time.time_ns())}_{asset}".lower()

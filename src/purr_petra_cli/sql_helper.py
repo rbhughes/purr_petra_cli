@@ -30,18 +30,19 @@ def make_id_in_clauses(identifier_keys: List[str], ids: List[Union[str, int]]) -
         clause += f"AND {identifier_keys[0]} IN ({no_quotes})"
     else:
         idc = " || '-' || ".join(f"CAST({i} AS VARCHAR(10))" for i in identifier_keys)
-        clause += f"AND {idc} IN ({','.join(ids)})"
+        ids_str = ",".join(str(i) for i in ids)
+        clause += f"AND {idc} IN ({ids_str})"
     return clause
 
 
 def create_selectors(
-    chunked_ids: List[List[Union[str, int]]], recipe: Dict[str, str]
+    chunked_ids: List[List[Union[str, int]]], identifier_keys: List[str], selector: str
 ) -> List[str]:
     """Create a list of SQL selectors based on recipe and chunked ids"""
     selectors = []
     for ids in chunked_ids:
-        in_clause = make_id_in_clauses(recipe["identifier_keys"], ids)
-        select_sql = recipe["selector"].replace(PURR_WHERE, in_clause)
+        in_clause = make_id_in_clauses(identifier_keys, ids)
+        select_sql = selector.replace(PURR_WHERE, in_clause)
         selectors.append(select_sql)
     return selectors
 
