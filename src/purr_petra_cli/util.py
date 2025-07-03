@@ -66,3 +66,8 @@ def timestamp_filename(proj: str, asset: str):
     repo_id = f"{prefix}_{suffix}"
 
     return f"{repo_id}_{int(time.time_ns())}_{asset}".lower()
+
+
+def ensure_dir(dir: str) -> str:
+    Path(dir).mkdir(parents=True, exist_ok=True)
+    return str(dir)

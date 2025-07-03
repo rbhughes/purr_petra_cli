@@ -1,9 +1,11 @@
 import typer
+import tempfile
+from pathlib import Path
 from typing import List, Optional, cast
 from enum import Enum
 from purr_petra_cli.setup import prepare
 from purr_petra_cli.proj import validate_proj_dir
-from purr_petra_cli.util import parse_uwis
+from purr_petra_cli.util import parse_uwis, ensure_dir
 from purr_petra_cli.asset import select_assets
 
 import json
@@ -47,6 +49,13 @@ def collect(
         + "omitting the --uwis arg selects everything--BEWARE!",
         callback=parse_uwis,
     ),
+    output_dir: str = typer.Option(
+        Path(tempfile.gettempdir()),
+        help="Define an output directory store exported json data. "
+        + "Enclose paths with spaces in quotes."
+        + "(Defaults to System TEMP).",
+        callback=ensure_dir,
+    ),
 ):
     # asset = asset.value # to get a real string from the Enum causes type error
 
@@ -56,10 +65,16 @@ def collect(
     print("asset=", asset.value)
     print("uwis=", uwis)
     print("uwis_list=", uwis_list)
+    print("output_dir=", output_dir)
 
     # epsg = get_storage_epsg(proj)
 
-    res = select_assets(proj=proj, asset=asset.value, uwis_list=uwis_list)
+    res = select_assets(
+        proj=proj,
+        asset=asset.value,
+        uwis_list=uwis_list,
+        output_dir=output_dir,
+    )
     print(json.dumps(res, indent=4))
     # print(res)
 
