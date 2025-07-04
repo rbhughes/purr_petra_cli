@@ -1,9 +1,6 @@
-"""Convenience method for dealing with DBISAM via ODBC"""
-
 from pathlib import Path
 from typing import Any, Dict, List
 import pyodbc
-# from purr_petra.core.logger import logger
 
 
 DBISAM_DRIVER = "DBISAM 4 ODBC Driver"

@@ -1,14 +1,14 @@
-import typer
+import json
 import tempfile
+from enum import Enum
 from pathlib import Path
 from typing import List, Optional, cast
-from enum import Enum
+import typer
 from purr_petra_cli.setup import prepare
 from purr_petra_cli.proj import validate_proj_dir
 from purr_petra_cli.util import parse_uwis, ensure_dir
 from purr_petra_cli.asset import select_assets
 
-import json
 
 app = typer.Typer()
 
@@ -101,3 +101,4 @@ if __name__ == "__main__":
 #   [3074, 3075, 3076, 3077, 3078, 3079, 3080, 3081, 3082, 3083]
 
 # uv run purr-petra-cli collect --asset well --proj C:\dev_data\petra\projects\INTERSTATE
+# stack: 35087204750001

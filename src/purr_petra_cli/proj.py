@@ -4,10 +4,6 @@ import typer
 from purr_petra_cli.epsg import get_epsg_info
 
 
-# def say_hello(proj: str):
-#     print(f"Hello {proj}")
-
-
 def is_valid_dir(fs_path: str) -> Optional[str]:
     """Validates and returns path as string if it exists
 

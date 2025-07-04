@@ -48,7 +48,7 @@ def standardize_df_columns(df: pd.DataFrame, column_types: Dict[str, str]):
             df[col] = df[col].apply(lambda x: None if pd.isna(x) else x)
             df[col] = df[col].astype("string")
         else:
-            df[col] = df[col].astype(col_type)
+            df[col] = df[col].astype(col_type)  # type: ignore
     return df
 
 
@@ -281,7 +281,8 @@ def series_row_to_json(
                 value = None
 
         for prefix, table_name in prefix_mapping.items():
-            if column.startswith(prefix):
+            # all the prefixes would be str, but add this Pylance
+            if isinstance(column, str) and column.startswith(prefix):
                 if table_name not in result:
                     result[table_name] = {}
                 result[table_name][column[len(prefix) :]] = value

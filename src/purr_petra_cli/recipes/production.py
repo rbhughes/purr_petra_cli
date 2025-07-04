@@ -1,6 +1,6 @@
 """Petra production"""
 
-from purr_petra.assets.collect.xformer import PURR_DELIM, PURR_NULL, PURR_WHERE
+from purr_petra_cli.xformer import PURR_DELIM, PURR_NULL, PURR_WHERE
 
 # identifier_keys = ["w.wsn", "f.mid"]
 identifier_keys = ["w.wsn"]

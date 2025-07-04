@@ -1,5 +1,8 @@
-"""Petra perforation
+"""Petra perforation"""
 
+from purr_petra_cli.xformer import PURR_WHERE
+
+"""
 Petra's concept of perfs is less 'overwrought' than geographix. The sensible
 thing is to consider common dates to signify a single completion event. The
 completion may even be indicated by the API number's last 4 digits:
@@ -7,7 +10,6 @@ completion may even be indicated by the API number's last 4 digits:
 maybe in 11th position like 0100 if it's a horizontal well"
 """
 
-from purr_petra.assets.collect.xformer import PURR_WHERE
 
 identifier_keys = ["w.wsn", "p.recid"]
 id_form = " || '-' || ".join([f"CAST({i} AS VARCHAR(10))" for i in identifier_keys])

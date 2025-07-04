@@ -1,6 +1,6 @@
 """Petra dst"""
 
-from purr_petra.assets.collect.xformer import PURR_DELIM, PURR_NULL, PURR_WHERE
+from purr_petra_cli.xformer import PURR_WHERE
 
 identifier_keys = ["w.wsn", "f.recid"]
 id_form = " || '-' || ".join([f"CAST({i} AS VARCHAR(10))" for i in identifier_keys])

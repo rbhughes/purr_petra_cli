@@ -1,12 +1,86 @@
-from typing import List, Dict, Any
-from pathlib import Path
-from purr_petra_cli.sql_helper import get_column_info
-from purr_petra_cli.xformer import formatters, transform_dataframe_to_json
-from purr_petra_cli.asset_config import AssetConfig
 import json
-import pyodbc
-import pandas as pd
+from dataclasses import dataclass
+from pathlib import Path
+from typing import List, Dict, Any, Optional
 import numpy as np
+import pandas as pd
+import pyodbc
+from purr_petra_cli.util import (
+    chunk_ids,
+    create_selectors,
+    fetch_id_list,
+    get_column_info,
+    get_recipe,
+    make_where_clause,
+    timestamp_filename,
+)
+from purr_petra_cli.dbisam import make_conn_params
+from purr_petra_cli.post_process import post_process
+from purr_petra_cli.xformer import PURR_WHERE, formatters, transform_dataframe_to_json
+
+
+######################
+import psutil
+from concurrent.futures import ThreadPoolExecutor
+
+
+# Function to estimate number of threads based on available memory (in MB)
+def estimate_thread_count(memory_per_thread_mb=500):
+    mem = psutil.virtual_memory()
+    available_mb = mem.available / (1024 * 1024)  # Convert bytes to MB
+    max_threads = int(available_mb // memory_per_thread_mb)
+    return max(1, max_threads)  # At least 1 thread
+
+
+@dataclass
+class AssetConfig:
+    asset: str
+    proj: str
+    uwis_list: Optional[List[str]]
+
+    def out_file(self):
+        return timestamp_filename(self.proj, self.asset)
+
+    @property
+    def recipe(self):
+        return get_recipe(self.asset)
+
+    @property
+    def conn(self):
+        return make_conn_params(self.proj)
+
+    @property
+    def xforms(self):
+        return self.recipe.get("xforms", {})
+
+    @property
+    def prefixes(self):
+        return self.recipe.get("prefixes", {})
+
+    @property
+    def selectors(self):
+        where = make_where_clause(self.uwis_list)
+
+        id_sql = self.recipe["identifier"].replace(PURR_WHERE, where)
+        chunk_size = self.recipe["chunk_size"] if "chunk_size" in self.recipe else 1000
+        # chunk_size = 6
+
+        ids = fetch_id_list(self.conn, id_sql)
+
+        chunked_ids = chunk_ids(ids, chunk_size)
+
+        selectors = create_selectors(
+            chunked_ids=chunked_ids,
+            identifier_keys=self.recipe["identifier_keys"],
+            selector=self.recipe["selector"],
+        )
+
+        return selectors
+
+    @property
+    def post_processor(self):
+        if proc_name := self.recipe.get("post_process"):
+            return post_process[proc_name]
 
 
 def compose_and_write_docs(
@@ -56,19 +130,40 @@ def compose_and_write_docs(
     return out_file, docs_written
 
 
+######################
+def run_in_parallel(cfg, output_dir: str):
+    num_threads = estimate_thread_count()
+    out_files = []
+
+    def task(select):
+        out_file = str(Path(output_dir, cfg.out_file()).with_suffix(".json"))
+        result = compose_and_write_docs(cfg, select, out_file)
+        out_files.append(out_file)
+        return result
+
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        results = list(executor.map(task, cfg.selectors))
+
+    return results
+
+
+######################
+
+
 def select_assets(proj: str, asset: str, uwis_list: List[str] | None, output_dir: str):
     cfg = AssetConfig(asset=asset, proj=proj, uwis_list=uwis_list)
 
-    out_files: List[str] = []
+    x = run_in_parallel(cfg, output_dir)
+    print("xxxxxxxxxxxxxxxx")
+    print(x)
+    print("xxxxxxxxxxxxxxxx")
 
-    for select in cfg.selectors:
-        out_file = str(Path(output_dir, cfg.out_file()).with_suffix(".json"))
-        out_files.append(out_file)
-        result = compose_and_write_docs(cfg, select, out_file)
+    # out_files: List[str] = []
 
-        print(result)
-        print("................")
+    # for select in cfg.selectors:
+    #     out_file = str(Path(output_dir, cfg.out_file()).with_suffix(".json"))
+    #     out_files.append(out_file)
+    #     result = compose_and_write_docs(cfg, select, out_file)
 
-    # result = compose_and_write_docs(cfg)
-
-    # print(result)
+    #     print(result)
+    #     print("................")

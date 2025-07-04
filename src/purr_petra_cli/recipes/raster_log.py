@@ -1,6 +1,6 @@
 """Petra raster_log"""
 
-from purr_petra.assets.collect.xformer import PURR_WHERE
+from purr_petra_cli.xformer import PURR_WHERE
 
 identifier_keys = ["w.wsn", "i.ign"]
 ID_FORM = " || '-' || ".join([f"CAST({i} AS VARCHAR(10))" for i in identifier_keys])

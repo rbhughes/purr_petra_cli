@@ -690,43 +690,6 @@ def lookup_epsg(
     return result
 
 
-# def epsg_codes(repo_base: Dict[str, Any]) -> Dict[str, Union[int, str]] | None:
-#     """Make an educated guess on likely storage and display EPSG codes.
-
-#     This is mostly based on epsg.io and may vary from the older BlueMarble stuff
-#     used by GeoPlus. Any real GIS work should verify things first.
-#     The names "datum" and "projection" are legacy references, not reality.
-
-#     Args:
-#         repo_base (Dict[str, Any]): A stub repo dict.
-
-#     Returns:
-#         Dict[str, Union[int, str]] | None: EPSG names and codes
-#     """
-#     conn: Dict[str, str] = {
-#         "driver": repo_base["conn"]["driver"],
-#         "catalogname": repo_base["fs_path"] + "/PARMS",
-#     }
-
-#     sql = "SELECT ObjValue FROM pubparms WHERE parmid = 40"
-#     data: List[Dict[str, Any]] | Exception = db_exec(conn, sql)
-#     if isinstance(data, Exception):
-#         # logger.error(data)
-#         return None
-
-#     blob: Any = data[0]["ObjValue"]
-#     buf = bytearray(blob)
-
-#     prj_val = buf[2537:2601]
-#     projection = prj_val.decode("utf-8").split("\x00")[0]
-
-#     dtm_val = buf[2602:]
-#     datum = dtm_val.decode("utf-8").split("\x00")[0]
-
-#     result: Dict[str, Union[int, str]] = lookup_epsg(datum, projection)
-#     return result
-
-
 def get_epsg_info(proj: str) -> Dict[str, Union[int, str]] | None:
     """Make an educated guess on likely storage and display EPSG codes.
 
