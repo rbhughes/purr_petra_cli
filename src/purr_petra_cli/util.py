@@ -60,13 +60,17 @@ def get_recipe(asset: str) -> Dict[str, Any]:
         raise ae
 
 
-def timestamp_filename(proj: str, asset: str):
+def make_repo_id(proj: str) -> str:
     fp = Path(proj)
     prefix = fp.name.upper()[:3]
     if len(fp.name) < 3:
         prefix = prefix.ljust(3, "_")
     suffix = hashlib.md5(str(fp).lower().encode()).hexdigest()[:6]
-    repo_id = f"{prefix}_{suffix}"
+    return f"{prefix}_{suffix}"
+
+
+def timestamp_filename(proj: str, asset: str) -> str:
+    repo_id = make_repo_id(proj)
 
     return f"{repo_id}_{int(time.time_ns())}_{asset}".lower()
 
@@ -147,7 +151,7 @@ def get_column_info(cursor: pyodbc.Cursor) -> Tuple[List[str], Dict[str, str]]:
     return column_names, column_types
 
 
-def fetch_id_list(conn, id_sql):
+def get_id_list(conn, id_sql):
     """
     Executes and asset recipe's identifier SQL and returns ids.
     :return: Results will be either be a single "keylist"
@@ -180,7 +184,9 @@ def fetch_id_list(conn, id_sql):
     else:
         print("key or keylist missing; cannot make id list")
 
-    return [int_or_string(i) for i in ids]
+    # use a Set here to avoid having to use costly DISTINCT in SQL
+    uniq_keys = {int_or_string(i) for i in ids}
+    return list(uniq_keys)
 
 
 def chunk_ids(ids, chunk):

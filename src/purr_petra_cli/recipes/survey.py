@@ -10,9 +10,6 @@ selector = f"""
         w.wsn          AS w_wsn,
         w.uwi          AS w_uwi,
 
-        s.lat          AS s_lat,
-        s.lon          AS s_lon,
-
         u.wsn          AS u_wsn,
         u.uwi          AS u_uwi,
         u.label        AS u_label,
@@ -63,7 +60,6 @@ selector = f"""
     JOIN dirsurvdata d ON d.wsn = w.wsn
     JOIN dirsurvdef f ON f.survrecid = d.survrecid
     LEFT JOIN uwi u ON u.wsn = w.wsn
-    LEFT JOIN locat s ON s.wsn = w.wsn
     {PURR_WHERE}
     GROUP BY w.wsn
     """
@@ -83,7 +79,6 @@ recipe = {
     "identifier": identifier,
     "prefixes": {
         "w_": "well",
-        "s_": "locat",
         "u_": "uwi",
         "d_": "dirsurvdata",
         "f_": "dirsurvdef",

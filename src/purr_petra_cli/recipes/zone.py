@@ -18,14 +18,10 @@ selector = f"""
         w.state        AS w_state,
         w.chgdate      AS w_chgdate,
 
-        s.lat          AS s_lat,
-        s.lon          AS s_lon,
-
         u.wsn          AS u_wsn,
         u.uwi          AS u_uwi,
         u.label        AS u_label,
         u.sortname     AS u_sortname,
-        u.flags        AS u_flags,
 
         n.zid          AS n_zid,
         n.name         AS n_name,
@@ -72,7 +68,6 @@ selector = f"""
 
     FROM well w
     LEFT JOIN uwi u ON u.wsn = w.wsn
-    LEFT JOIN locat s ON s.wsn = w.wsn
     JOIN zdata z ON z.wsn = w.wsn
     JOIN zonedef n ON n.zid = z.zid AND n.kind > 2
     JOIN zflddef f ON f.zid = n.zid AND f.fid = z.fid
@@ -93,7 +88,7 @@ selector = f"""
 #     """
 
 identifier = f"""
-    SELECT DISTINCT
+    SELECT
         {id_form} AS key
     FROM well w
     LEFT JOIN uwi u ON u.wsn = w.wsn
@@ -108,7 +103,6 @@ recipe = {
     "identifier": identifier,
     "prefixes": {
         "w_": "well",
-        "s_": "locat",
         "u_": "uwi",
         "n_": "zonedef",
         "f_": "zflddef",

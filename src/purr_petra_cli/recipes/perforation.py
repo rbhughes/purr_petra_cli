@@ -18,23 +18,12 @@ selector = f"""
     SELECT
         w.wsn          AS w_wsn,
         w.uwi          AS w_uwi,
-        w.shortname    AS w_shortname,
-        w.wellname     AS w_wellname,
-        w.operator     AS w_operator,
-        w.leasename    AS w_leasename,
-        w.leasenumber  AS w_leasenumber,
-        w.county       AS w_county,
-        w.state        AS w_state,
-        w.chgdate      AS w_chgdate,
-
-        s.lat          AS s_lat,
-        s.lon          AS s_lon,
 
         u.wsn          AS u_wsn,
         u.uwi          AS u_uwi,
         u.label        AS u_label,
         u.sortname     AS u_sortname,
-        u.flags        AS u_flags,
+        u.flags        AS u_flags,        
 
         p.recid        AS p_recid,
         p.wsn          AS p_wsn,
@@ -55,7 +44,6 @@ selector = f"""
 
     FROM well w
     LEFT JOIN uwi u ON u.wsn = w.wsn
-    LEFT JOIN locat s ON s.wsn = w.wsn
     JOIN perfs p ON p.wsn = w.wsn
     {PURR_WHERE}
     """
@@ -74,7 +62,6 @@ recipe = {
     "identifier": identifier,
     "prefixes": {
         "w_": "well",
-        "s_": "locat",
         "u_": "uwi",
         "p_": "perfs",
     },

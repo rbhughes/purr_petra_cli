@@ -10,17 +10,6 @@ selector = f"""
     SELECT
         w.wsn          AS w_wsn,
         w.uwi          AS w_uwi,
-        w.shortname    AS w_shortname,
-        w.wellname     AS w_wellname,
-        w.operator     AS w_operator,
-        w.leasename    AS w_leasename,
-        w.leasenumber  AS w_leasenumber,
-        w.county       AS w_county,
-        w.state        AS w_state,
-        w.chgdate      AS w_chgdate,
-
-        s.lat          AS s_lat,
-        s.lon          AS s_lon,
 
         u.wsn          AS u_wsn,
         u.uwi          AS u_uwi,
@@ -61,33 +50,13 @@ selector = f"""
     JOIN mopddata a ON a.mid = f.mid
     JOIN well w ON a.wsn = w.wsn
     LEFT JOIN uwi u ON u.wsn = w.wsn
-    LEFT JOIN locat s ON s.wsn = w.wsn
     {PURR_WHERE}
     GROUP BY w.wsn, f.mid
     """
 
-# identifier = f"""
-#     SELECT
-#         {id_form} AS key
-#     FROM mopddef f
-#     JOIN mopddata a ON a.mid = f.mid
-#     JOIN well w ON a.wsn = w.wsn
-#     LEFT JOIN uwi u ON u.wsn = w.wsn
-#     {PURR_WHERE}
-#     GROUP BY key
-#     """
-
-# identifier = f"""
-#     SELECT DISTINCT
-#         CAST(a.wsn AS VARCHAR(10)) || '-' || CAST(a.mid AS VARCHAR(10)) AS key
-#     FROM mopddata a
-#     JOIN well w ON a.wsn = w.wsn
-#     LEFT JOIN uwi u ON u.wsn = w.wsn
-#     {PURR_WHERE}
-#     """
 
 identifier = f"""
-    SELECT DISTINCT
+    SELECT
         {id_form} AS key
     FROM mopddata a
     JOIN well w ON a.wsn = w.wsn
@@ -100,7 +69,6 @@ recipe = {
     "identifier": identifier,
     "prefixes": {
         "w_": "well",
-        "s_": "locat",
         "u_": "uwi",
         "f_": "mopddef",
         "a_": "mopddata",

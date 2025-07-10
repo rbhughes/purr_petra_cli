@@ -8,9 +8,10 @@ import pyodbc
 from purr_petra_cli.util import (
     chunk_ids,
     create_selectors,
-    fetch_id_list,
+    get_id_list,
     get_column_info,
     get_recipe,
+    make_repo_id,
     make_where_clause,
     timestamp_filename,
 )
@@ -42,6 +43,10 @@ class AssetConfig:
         return timestamp_filename(self.proj, self.asset)
 
     @property
+    def repo_id(self):
+        return make_repo_id(self.proj)
+
+    @property
     def recipe(self):
         return get_recipe(self.asset)
 
@@ -62,10 +67,13 @@ class AssetConfig:
         where = make_where_clause(self.uwis_list)
 
         id_sql = self.recipe["identifier"].replace(PURR_WHERE, where)
+        print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+        print(id_sql)
+        print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
         chunk_size = self.recipe["chunk_size"] if "chunk_size" in self.recipe else 1000
         # chunk_size = 6
 
-        ids = fetch_id_list(self.conn, id_sql)
+        ids = get_id_list(self.conn, id_sql)
 
         chunked_ids = chunk_ids(ids, chunk_size)
 
@@ -119,6 +127,7 @@ def compose_and_write_docs(
 
             for json_obj in json_data:
                 json_obj["proj"] = cfg.proj
+                json_obj["repo_id"] = cfg.repo_id
                 json_str = json.dumps(json_obj, default=str)
                 f.write(json_str + ",")
                 docs_written += 1
@@ -152,18 +161,10 @@ def run_in_parallel(cfg, output_dir: str):
 
 def select_assets(proj: str, asset: str, uwis_list: List[str] | None, output_dir: str):
     cfg = AssetConfig(asset=asset, proj=proj, uwis_list=uwis_list)
+    print(cfg.selectors[0])
 
+    # return
     x = run_in_parallel(cfg, output_dir)
     print("xxxxxxxxxxxxxxxx")
     print(x)
     print("xxxxxxxxxxxxxxxx")
-
-    # out_files: List[str] = []
-
-    # for select in cfg.selectors:
-    #     out_file = str(Path(output_dir, cfg.out_file()).with_suffix(".json"))
-    #     out_files.append(out_file)
-    #     result = compose_and_write_docs(cfg, select, out_file)
-
-    #     print(result)
-    #     print("................")

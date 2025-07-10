@@ -10,17 +10,6 @@ selector = f"""
     SELECT
     w.wsn          AS w_wsn,
     w.uwi          AS w_uwi,
-    w.shortname    AS w_shortname,
-    w.wellname     AS w_wellname,
-    w.operator     AS w_operator,
-    w.leasename    AS w_leasename,
-    w.leasenumber  AS w_leasenumber,
-    w.county       AS w_county,
-    w.state        AS w_state,
-    w.chgdate      AS w_chgdate,
-
-    s.lat          AS s_lat,
-    s.lon          AS s_lon,
 
     u.wsn          AS u_wsn,
     u.uwi          AS u_uwi,
@@ -74,7 +63,6 @@ selector = f"""
 
     FROM well w
     LEFT JOIN uwi u ON u.wsn = w.wsn
-    LEFT JOIN locat s ON s.wsn = w.wsn
     JOIN logdata a ON w.wsn = a.wsn
     JOIN logdef f ON a.lsn = f.lsn
     JOIN logdatax x ON a.wsn = x.wsn AND a.lsn = x.lsn AND a.ldsn = x.ldsn
@@ -87,7 +75,6 @@ identifier = f"""
         LIST({id_form}) as keylist
     FROM well w
     LEFT JOIN uwi u ON u.wsn = w.wsn
-    LEFT JOIN locat s ON s.wsn = w.wsn
     JOIN logdata a ON w.wsn = a.wsn
     JOIN logdef f ON a.lsn = f.lsn
     JOIN logdatax x ON a.wsn = x.wsn AND a.lsn = x.lsn AND a.ldsn = x.ldsn
@@ -100,7 +87,6 @@ recipe = {
     "identifier": identifier,
     "prefixes": {
         "w_": "well",
-        "s_": "locat",
         "u_": "uwi",
         "a_": "logdata",
         "f_": "logdef",

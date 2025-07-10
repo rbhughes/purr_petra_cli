@@ -10,17 +10,6 @@ selector = f"""
     SELECT
         w.wsn          AS w_wsn,
         w.uwi          AS w_uwi,
-        w.shortname    AS w_shortname,
-        w.wellname     AS w_wellname,
-        w.operator     AS w_operator,
-        w.leasename    AS w_leasename,
-        w.leasenumber  AS w_leasenumber,
-        w.county       AS w_county,
-        w.state        AS w_state,
-        w.chgdate      AS w_chgdate,
-
-        s.lat          AS s_lat,
-        s.lon          AS s_lon,
 
         u.wsn          AS u_wsn,
         u.uwi          AS u_uwi,
@@ -44,7 +33,6 @@ selector = f"""
 
     FROM well w
     LEFT JOIN uwi u ON u.wsn = w.wsn
-    LEFT JOIN locat s ON s.wsn = w.wsn
     JOIN cores c ON c.wsn = w.wsn
     {PURR_WHERE}
     GROUP BY w.wsn
@@ -53,7 +41,7 @@ selector = f"""
 
 identifier = f"""
     SELECT
-        DISTINCT({id_form}) AS key
+        {id_form} AS key
     FROM well w
     LEFT JOIN uwi u ON u.wsn = w.wsn
     JOIN cores c ON w.wsn = c.wsn
@@ -65,7 +53,6 @@ recipe = {
     "identifier": identifier,
     "prefixes": {
         "w_": "well",
-        "s_": "locat",
         "u_": "uwi",
         "c_": "cores",
     },

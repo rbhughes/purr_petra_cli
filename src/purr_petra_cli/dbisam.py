@@ -4,9 +4,30 @@ import pyodbc
 
 
 DBISAM_DRIVER = "DBISAM 4 ODBC Driver"
+DBISAM_FETCH_SIZE = 1000
 
 
 def db_exec(conn: Dict, sql: str) -> List[Dict[str, Any]] | Exception:
+    results = []
+    try:
+        with pyodbc.connect(**conn) as connection:
+            connection.setencoding("CP1252")
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
+                columns = [col[0] for col in cursor.description]
+                while True:
+                    rows = cursor.fetchmany(DBISAM_FETCH_SIZE)
+                    if not rows:
+                        break
+                    results.extend([dict(zip(columns, row)) for row in rows])
+        return results
+    except pyodbc.ProgrammingError as pe:
+        raise pe
+    except Exception as ex:
+        raise ex
+
+
+def db_exec2(conn: Dict, sql: str) -> List[Dict[str, Any]] | Exception:
     """Convenience method for using pyodbc and DBISAM with Petra
 
     The dreaded "DBISAM Engine Error # 11013. Access denied to table or file"
