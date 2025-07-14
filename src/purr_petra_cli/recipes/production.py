@@ -3,7 +3,8 @@
 from purr_petra_cli.xformer import PURR_DELIM, PURR_NULL, PURR_WHERE
 
 # identifier_keys = ["w.wsn", "f.mid"]
-identifier_keys = ["w.wsn"]
+# identifier_keys = ["w.wsn"]
+identifier_keys = ["u.wsn"]
 id_form = " || '-' || ".join([f"CAST({i} AS VARCHAR(10))" for i in identifier_keys])
 
 selector = f"""
@@ -55,13 +56,22 @@ selector = f"""
     """
 
 
+# identifier = f"""
+#     SELECT
+#         {id_form} AS key
+#     FROM mopddata a
+#     JOIN well w ON a.wsn = w.wsn
+#     LEFT JOIN uwi u ON u.wsn = w.wsn
+#     {PURR_WHERE}
+#     """
+
 identifier = f"""
     SELECT
-        {id_form} AS key
+        {id_form} AS key, u.wsn
     FROM mopddata a
-    JOIN well w ON a.wsn = w.wsn
-    LEFT JOIN uwi u ON u.wsn = w.wsn
+    LEFT JOIN uwi u ON u.wsn = a.wsn
     {PURR_WHERE}
+    GROUP BY wsn
     """
 
 recipe = {

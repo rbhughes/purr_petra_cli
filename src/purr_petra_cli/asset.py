@@ -67,11 +67,7 @@ class AssetConfig:
         where = make_where_clause(self.uwis_list)
 
         id_sql = self.recipe["identifier"].replace(PURR_WHERE, where)
-        print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
-        print(id_sql)
-        print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
         chunk_size = self.recipe["chunk_size"] if "chunk_size" in self.recipe else 1000
-        # chunk_size = 6
 
         ids = get_id_list(self.conn, id_sql)
 
@@ -161,10 +157,9 @@ def run_in_parallel(cfg, output_dir: str):
 
 def select_assets(proj: str, asset: str, uwis_list: List[str] | None, output_dir: str):
     cfg = AssetConfig(asset=asset, proj=proj, uwis_list=uwis_list)
-    print(cfg.selectors[0])
+    # for x in cfg.selectors:
+    #     print(x)
 
-    # return
-    x = run_in_parallel(cfg, output_dir)
-    print("xxxxxxxxxxxxxxxx")
-    print(x)
-    print("xxxxxxxxxxxxxxxx")
+    result = run_in_parallel(cfg, output_dir)
+    for res in result:
+        print(f"{res[0]}   ~~  {res[1]} docs")

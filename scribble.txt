@@ -1,24 +1,15 @@
-How to Achieve Global CLI Installation with uv
-Initialize your project as an app and package:
+uv pip install -e .
+uv run purr-petra-cli collect --asset well --proj C:\dev_data\petra\projects\INTERSTATE
 
-uv init --app --package hello_cli
-Ensure your pyproject.toml defines the CLI entry point:
+uv build
+uv venv test-env
+test-env\Scripts\activate
+uv pip list
+uv pip install dist\purr_petra_cli-0.1.0-py3-none-any.whl
+(try import purr_petra_cli in python repl)
+rmdir /s /q test-env
 
-[project.scripts]
-hello-cli = "hello:main"
-(Replace "hello:main" with the actual module and function.)
+uv publish --token pypi-xxxxxxxxx
 
-
-Install your CLI globally:
-
-uv tool install . -e
-This command installs your CLI tool in "editable" mode, making it available system-wide.
-
-
-
-Invoke your CLI from anywhere:
-
-hello-cli
-After this installation, hello-cli will be available on your system PATH, so you can call it directly from any terminal window—no need to prefix with uv run or activate a specific environment.
-
-This method is the most accepted approach for globally available Python CLI apps using uv, and it works seamlessly with Typer-based projects as well.
+INTERSTATE: 05009052460000,
+STACK: 35087204750001
